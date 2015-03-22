@@ -1,0 +1,10 @@
+modernizr.min.js
+.DS_Store
+/test/qunit/.svn/
+/test/.svn/
+/test/js/lib/.svn/
+/.svn/
+/feature-detects/.svn/
+/media/.svn/
+/test/caniuse_files/.svn/
+/test/js/.svn/
