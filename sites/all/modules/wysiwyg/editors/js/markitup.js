@@ -18,14 +18,23 @@ Drupal.wysiwyg.editor.attach.markitup = function(context, params, settings) {
  * Detach a single or all editors.
  */
 Drupal.wysiwyg.editor.detach.markitup = function (context, params, trigger) {
-  if (trigger && trigger == 'serialize') {
+  if (trigger == 'serialize') {
     return;
   }
-  if (typeof params != 'undefined') {
-    $('#' + params.field, context).markItUpRemove();
-  }
-  else {
-    $('.markItUpEditor', context).markItUpRemove();
+  $('#' + params.field, context).markItUpRemove();
+};
+
+Drupal.wysiwyg.editor.instance.markitup = {
+  insert: function (content) {
+    $.markItUp({ replaceWith: content });
+  },
+
+  setContent: function (content) {
+    $('#' + this.field).val(content);
+  },
+
+  getContent: function () {
+    return $('#' + this.field).val();
   }
 };
 

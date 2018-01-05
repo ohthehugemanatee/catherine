@@ -89,12 +89,6 @@ function media_gallery_field_formatter_view($entity_type, $entity, $field, $inst
   // Prepare the referenced file entities for viewing.
   $files = array();
   foreach ($items as $delta => $item) {
-    // Don't try to display files which no longer exist.
-    if (!isset($item['file'])) {
-      unset($items[$delta]);
-      continue;
-    }
-
     $file = $item['file'];
 
     // Pass along formatter reference field values from the gallery to the file.

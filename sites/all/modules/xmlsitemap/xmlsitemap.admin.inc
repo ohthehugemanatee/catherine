@@ -105,7 +105,7 @@ function xmlsitemap_sitemap_list_form() {
     '#type' => 'tableselect',
     '#header' => $header,
     '#options' => $options,
-    '#empty' => t('No XML sitemaps available.') . ' ' . l('Add a new XML sitemap', 'admin/config/search/xmlsitemap/add'),
+    '#empty' => t('No XML sitemaps available.') . ' ' . l(t('Add a new XML sitemap'), 'admin/config/search/xmlsitemap/add'),
   );
   return $form;
 }
@@ -230,7 +230,7 @@ function xmlsitemap_sitemap_delete_form(array $form, array &$form_state, stdClas
 
   $count = (int) db_query("SELECT COUNT(smid) FROM {xmlsitemap_sitemap}")->fetchField();
   if ($count === 1 && empty($_POST)) {
-    drupal_set_message('It is not recommended to delete the only XML sitemap.', 'error');
+    drupal_set_message(t('It is not recommended to delete the only XML sitemap.'), 'error');
   }
 
   $form['#sitemap'] = $sitemap;
@@ -309,18 +309,17 @@ function xmlsitemap_settings_form($form, &$form_state) {
     '#default_value' => xmlsitemap_var('batch_limit'),
     '#description' => t('If you have problems running cron or rebuilding the sitemap, you may want to lower this value.'),
   );
-  $path = variable_get('xmlsitemap_path', 'xmlsitemap');
   if (!xmlsitemap_check_directory()) {
     form_set_error('xmlsitemap_path', t('The directory %directory does not exist or is not writable.', array('%directory' => xmlsitemap_get_directory())));
   }
   $form['advanced']['xmlsitemap_path'] = array(
     '#type' => 'textfield',
     '#title' => t('Sitemap cache directory'),
-    '#default_value' => $path,
+    '#default_value' => variable_get('xmlsitemap_path', 'xmlsitemap'),
     '#size' => 30,
     '#maxlength' => 255,
     '#description' => t('Subdirectory where the sitemap data will be stored. This folder <strong>must not be shared</strong> with any other Drupal site or install using XML sitemap.'),
-    '#field_prefix' => variable_get('file_public_path', conf_path() . '/files') . '/',
+    '#field_prefix' => file_build_uri(''),
     '#required' => TRUE,
   );
   $form['advanced']['xmlsitemap_base_url'] = array(
@@ -349,6 +348,22 @@ function xmlsitemap_settings_form($form, &$form_state) {
     '#title' => t('Enable developer mode to expose additional settings.'),
     '#default_value' => variable_get('xmlsitemap_developer_mode', 0),
   );
+  $form['advanced']['xmlsitemap_disable_cron_regeneration'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Disable cron generation of sitemap files.'),
+    '#default_value' => variable_get('xmlsitemap_disable_cron_regeneration', 0),
+    '#description' => t('This can be disabled if other methods are being used to generate the sitemap files, like <em>drush xmlsitemap-regenerate</em>.'),
+  );
+  $form['advanced']['xmlsitemap_output_elements'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Enable or disable the individual @loc elements from output', array('@loc' => '<loc>')),
+    '#options' => array(
+      'lastmod' => t('Last modification date: @lastmod', array('@lastmod' => '<lastmod>')),
+      'changefreq' => t('Change frequency: @changfreq', array('@changfreq' => '<changefreq>')),
+      'priority' => t('Priority: @priority', array('@priority' => '<priority>')),
+    ),
+    '#default_value' => drupal_map_assoc(variable_get('xmlsitemap_output_elements', array('lastmod', 'changefreq', 'priority'))),
+  );
 
   $form['xmlsitemap_settings'] = array(
     '#type' => 'vertical_tabs',
@@ -356,6 +371,7 @@ function xmlsitemap_settings_form($form, &$form_state) {
   );
 
   $entities = xmlsitemap_get_link_info(NULL, TRUE);
+  module_load_all_includes('xmlsitemap.inc');
   foreach ($entities as $entity => $entity_info) {
     $form[$entity] = array(
       '#type' => 'fieldset',
